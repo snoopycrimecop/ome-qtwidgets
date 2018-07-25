@@ -151,7 +151,7 @@ namespace ome
           // Full dimension sizes.
           dimension_size_type z = reader->getSizeZ();
           dimension_size_type t = reader->getSizeT();
-          dimension_size_type c = reader->getSizeC();
+          dimension_size_type c = reader->getEffectiveSizeC();
           // Modulo dimension sizes.
           dimension_size_type mz = reader->getModuloZ().size();
           dimension_size_type mt = reader->getModuloT().size();
