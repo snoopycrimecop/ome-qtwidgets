@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -83,11 +84,13 @@ namespace ome
        *
        * @param reader the image reader.
        * @param series the image series.
+       * @param resolution the image resolution.
        * @param parent the parent of this object.
        */
       GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
-               ome::files::dimension_size_type                    series,
-               QWidget                                                *parent = 0);
+               ome::files::dimension_size_type            series,
+               ome::files::dimension_size_type            resolution,
+               QWidget                                   *parent = 0);
 
       /// Destructor.
       ~GLView2D();
@@ -187,6 +190,14 @@ namespace ome
        */
       ome::files::dimension_size_type
       getSeries();
+
+      /**
+       * Get resolution.
+       *
+       * @returns the resolution.
+       */
+      ome::files::dimension_size_type
+      getResolution();
 
       /**
        * Get zoom factor.
@@ -461,6 +472,8 @@ namespace ome
       std::shared_ptr<ome::files::FormatReader> reader;
       /// The image series.
       ome::files::dimension_size_type series;
+      /// The image resolution.
+      ome::files::dimension_size_type resolution;
     };
 
   }

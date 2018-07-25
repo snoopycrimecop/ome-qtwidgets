@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,9 +52,10 @@ namespace ome
       {
 
         Axis2D::Axis2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                       ome::files::dimension_size_type                    series,
-                       QObject                                           *parent):
-          gl::Axis2D(reader, series, parent),
+                       ome::files::dimension_size_type            series,
+                       ome::files::dimension_size_type            resolution,
+                       QObject                                   *parent):
+          gl::Axis2D(reader, series, resolution, parent),
           axis_shader(new glsl::v330::GLFlatShader2D(this))
         {
         }

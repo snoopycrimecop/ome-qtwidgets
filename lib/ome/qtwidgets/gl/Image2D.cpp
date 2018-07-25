@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -67,7 +68,8 @@ namespace
     ome::files::dimension_size_type h;
 
     TextureProperties(const ome::files::FormatReader& reader,
-                      ome::files::dimension_size_type series):
+                      ome::files::dimension_size_type series,
+                      ome::files::dimension_size_type resolution):
       internal_format(GL_R8),
       external_format(GL_RED),
       external_type(GL_UNSIGNED_BYTE),
@@ -79,11 +81,13 @@ namespace
     {
       ome::files::dimension_size_type oldseries = reader.getSeries();
       reader.setSeries(series);
+      reader.setResolution(resolution);
       ome::xml::model::enums::PixelType pixeltype = reader.getPixelType();
-      reader.setSeries(oldseries);
 
       w = reader.getSizeX();
       h = reader.getSizeY();
+
+      reader.setSeries(oldseries);
 
       switch(pixeltype)
         {
@@ -273,8 +277,9 @@ namespace ome
     {
 
       Image2D::Image2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                       ome::files::dimension_size_type                    series,
-                       QObject                                                *parent):
+                       ome::files::dimension_size_type            series,
+                       ome::files::dimension_size_type            resolution,
+                       QObject                                   *parent):
         QObject(parent),
         vertices(),
         image_vertices(QOpenGLBuffer::VertexBuffer),
@@ -287,6 +292,7 @@ namespace ome
         texcorr(1.0f),
         reader(reader),
         series(series),
+        resolution(resolution),
         plane(-1)
       {
         initializeOpenGLFunctions();
@@ -298,10 +304,11 @@ namespace ome
 
       void Image2D::create()
       {
-        TextureProperties tprop(*reader, series);
+        TextureProperties tprop(*reader, series, resolution);
 
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
+        reader->setResolution(resolution);
         ome::files::dimension_size_type sizeX = reader->getSizeX();
         ome::files::dimension_size_type sizeY = reader->getSizeY();
         setSize(glm::vec2(-(sizeX/2.0f), sizeX/2.0f),
@@ -429,11 +436,12 @@ namespace ome
       {
         if (this->plane != plane)
           {
-            TextureProperties tprop(*reader, series);
+            TextureProperties tprop(*reader, series, resolution);
 
             ome::files::VariantPixelBuffer buf;
             ome::files::dimension_size_type oldseries = reader->getSeries();
             reader->setSeries(series);
+            reader->setResolution(resolution);
             reader->openBytes(plane, buf);
             reader->setSeries(oldseries);
 

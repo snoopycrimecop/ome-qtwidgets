@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -75,8 +76,9 @@ namespace ome
   {
 
     GLView2D::GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                       ome::files::dimension_size_type                    series,
-                       QWidget                                                * /* parent */):
+                       ome::files::dimension_size_type            series,
+                       ome::files::dimension_size_type            resolution,
+                       QWidget                                   * /* parent */):
       GLWindow(),
       camera(),
       mouseMode(MODE_ZOOM),
@@ -90,7 +92,8 @@ namespace ome
       axes(),
       grid(),
       reader(reader),
-      series(series)
+      series(series),
+      resolution(resolution)
     {
     }
 
@@ -119,6 +122,12 @@ namespace ome
     GLView2D::getSeries()
     {
       return series;
+    }
+
+    ome::files::dimension_size_type
+    GLView2D::getResolution()
+    {
+      return resolution;
     }
 
     int
@@ -273,9 +282,9 @@ namespace ome
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       gl::check_gl("Set blend function");
 
-      image = new gl::v33::Image2D(reader, series, this);
-      axes = new gl::v33::Axis2D(reader, series, this);
-      grid = new gl::v33::Grid2D(reader, series, this);
+      image = new gl::v33::Image2D(reader, series, resolution, this);
+      axes = new gl::v33::Axis2D(reader, series, resolution, this);
+      grid = new gl::v33::Grid2D(reader, series, resolution, this);
 
       GLint max_combined_texture_image_units;
       glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);

@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -107,19 +108,22 @@ namespace ome
     {
 
       Grid2D::Grid2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                     ome::files::dimension_size_type                    series,
-                     QObject                                                *parent):
+                     ome::files::dimension_size_type            series,
+                     ome::files::dimension_size_type            resolution,
+                     QObject                                   *parent):
         QObject(parent),
         vertices(),
         grid_vertices(QOpenGLBuffer::VertexBuffer),
         grid_elements(QOpenGLBuffer::IndexBuffer),
         reader(reader),
-        series(series)
+        series(series),
+        resolution(resolution)
       {
         initializeOpenGLFunctions();
 
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
+        reader->setResolution(resolution);
         setSize(glm::vec2(-(static_cast<float>(reader->getSizeX())), reader->getSizeX()), glm::vec2(-(static_cast<float>(reader->getSizeY())), reader->getSizeY()));
         reader->setSeries(oldseries);
       }

@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -49,15 +50,17 @@ namespace ome
     {
 
       Axis2D::Axis2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                     ome::files::dimension_size_type                    series,
-                     QObject                                                *parent):
+                     ome::files::dimension_size_type            series,
+                     ome::files::dimension_size_type            resolution,
+                     QObject                                   *parent):
         QObject(parent),
         vertices(),
         xaxis_vertices(QOpenGLBuffer::VertexBuffer),
         yaxis_vertices(QOpenGLBuffer::VertexBuffer),
         axis_elements(QOpenGLBuffer::IndexBuffer),
         reader(reader),
-        series(series)
+        series(series),
+        resolution(resolution)
       {
         initializeOpenGLFunctions();
       }
@@ -71,6 +74,7 @@ namespace ome
       {
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
+        reader->setResolution(resolution);
         setSize(glm::vec2(-(reader->getSizeX()/2.0f), reader->getSizeX()/2.0f),
                 glm::vec2(-(reader->getSizeY()/2.0f), reader->getSizeY()/2.0f),
                 glm::vec2(-(reader->getSizeX()/2.0f)-12.0, -(reader->getSizeY()/2.0f)-12.0),

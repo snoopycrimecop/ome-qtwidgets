@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -247,7 +248,7 @@ namespace view
       {
         std::shared_ptr<ome::files::FormatReader> reader(std::make_shared<ome::files::in::OMETIFFReader>());
         reader->setId(file.toStdString());
-        GLView2D *newGlView = new GLView2D(reader, 0, this);
+        GLView2D *newGlView = new GLView2D(reader, 0, 1, this);
         QWidget *glContainer = new GLContainer(this, newGlView);
         newGlView->setObjectName("glcontainer");
         // We need a minimum size or else the size defaults to zero.
