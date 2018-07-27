@@ -45,9 +45,9 @@
 #include <ome/qtwidgets/gl/Util.h>
 
 #include <ome/qtwidgets/glm.h>
-#include <ome/qtwidgets/gl/v33/V33Image2D.h>
-#include <ome/qtwidgets/gl/v33/V33Grid2D.h>
-#include <ome/qtwidgets/gl/v33/V33Axis2D.h>
+#include <ome/qtwidgets/gl/Image2D.h>
+#include <ome/qtwidgets/gl/Grid2D.h>
+#include <ome/qtwidgets/gl/Axis2D.h>
 
 #include <iostream>
 
@@ -159,9 +159,9 @@ namespace ome
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       gl::check_gl("Set blend function");
 
-      image = new gl::v33::Image2D(reader, series, resolution, this);
-      axes = new gl::v33::Axis2D(reader, series, resolution, this);
-      grid = new gl::v33::Grid2D(reader, series, resolution, this);
+      image = new gl::Image2D(reader, series, resolution, this);
+      axes = new gl::Axis2D(reader, series, resolution, this);
+      grid = new gl::Grid2D(reader, series, resolution, this);
 
       GLint max_combined_texture_image_units;
       glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);

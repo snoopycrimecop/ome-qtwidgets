@@ -52,6 +52,7 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
+#include <ome/qtwidgets/glsl/GLLineShader2D.h>
 
 namespace ome
 {
@@ -88,7 +89,7 @@ namespace ome
 
         /// Destructor.
         virtual
-        ~Grid2D() = 0;
+        ~Grid2D();
 
         /**
          * Create GL buffers.
@@ -96,7 +97,6 @@ namespace ome
          * @note Requires a valid GL context.  Must be called before
          * rendering.
          */
-        virtual
         void
         create();
 
@@ -109,12 +109,11 @@ namespace ome
          * @param mvp the model view projection matrix.
          * @param zoom the zoom level.
          */
-        virtual
         void
         render(const glm::mat4& mvp,
-               float            zoom) = 0;
+               float            zoom);
 
-      protected:
+      private:
         /**
          * Set the size of the x and y axes.
          *
@@ -138,6 +137,8 @@ namespace ome
         ome::files::dimension_size_type series;
         /// The image resolution.
         ome::files::dimension_size_type resolution;
+        /// The shader program for grid shading.
+        glsl::GLLineShader2D *grid_shader;
       };
 
     }

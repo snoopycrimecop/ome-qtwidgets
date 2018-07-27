@@ -52,6 +52,7 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
+#include <ome/qtwidgets/glsl/GLImageShader2D.h>
 
 namespace ome
 {
@@ -92,7 +93,7 @@ namespace ome
 
         /// Destructor.
         virtual
-        ~Image2D() = 0;
+        ~Image2D();
 
         /**
          * Create GL buffers.
@@ -100,18 +101,16 @@ namespace ome
          * @note Requires a valid GL context.  Must be called before
          * rendering.
          */
-        virtual
         void
         create();
 
-      protected:
+      private:
         /**
          * Set the size of the x and y dimensions.
          *
          * @param xlim the x axis limits (range).
          * @param ylim the y axis limits (range).
          */
-        virtual
         void
         setSize(const glm::vec2& xlim,
                 const glm::vec2& ylim);
@@ -179,9 +178,8 @@ namespace ome
          *
          * @param mvp the model view projection matrix.
          */
-        virtual
         void
-        render(const glm::mat4& mvp) = 0;
+        render(const glm::mat4& mvp);
 
         /**
          * Get texture ID.
@@ -232,6 +230,8 @@ namespace ome
         ome::files::dimension_size_type resolution;
         /// The current image plane.
         ome::files::dimension_size_type plane;
+        /// The shader program for image rendering.
+        glsl::GLImageShader2D *image_shader;
       };
 
     }

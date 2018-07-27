@@ -42,6 +42,7 @@
 
 #include <ome/qtwidgets/gl/Image2D.h>
 #include <ome/qtwidgets/gl/Util.h>
+#include <ome/qtwidgets/glsl/GLImageShader2D.h>
 
 using ome::files::PixelBuffer;
 using ome::files::PixelBufferBase;
@@ -367,7 +368,8 @@ namespace ome
         reader(reader),
         series(series),
         resolution(resolution),
-        plane(-1)
+        plane(-1),
+        image_shader(new glsl::GLImageShader2D(this, reader->getRGBChannelCount(0) == 3))
       {
         initializeOpenGLFunctions();
       }
@@ -559,6 +561,47 @@ namespace ome
       Image2D::lut()
       {
         return lutid;
+      }
+
+      void
+      Image2D::render(const glm::mat4& mvp)
+      {
+        image_shader->bind();
+
+        image_shader->setMin(texmin);
+        image_shader->setMax(texmax);
+        image_shader->setCorrection(texcorr);
+        image_shader->setModelViewProjection(mvp);
+
+        glActiveTexture(GL_TEXTURE0);
+        check_gl("Activate texture");
+        glBindTexture(GL_TEXTURE_2D, textureid);
+        check_gl("Bind texture");
+        image_shader->setTexture(0);
+
+        glActiveTexture(GL_TEXTURE1);
+        check_gl("Activate texture");
+        glBindTexture(GL_TEXTURE_1D_ARRAY, lutid);
+        check_gl("Bind texture");
+        image_shader->setLUT(1);
+
+        vertices.bind();
+
+        image_shader->enableCoords();
+        image_shader->setCoords(image_vertices, 0, 2);
+
+        image_shader->enableTexCoords();
+        image_shader->setTexCoords(image_texcoords, 0, 2);
+
+        // Push each element to the vertex shader
+        image_elements.bind();
+        glDrawElements(GL_TRIANGLES, image_elements.size()/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+        check_gl("Image2D draw elements");
+
+        image_shader->disableCoords();
+        image_shader->disableTexCoords();
+        vertices.release();
+        image_shader->release();
       }
 
     }

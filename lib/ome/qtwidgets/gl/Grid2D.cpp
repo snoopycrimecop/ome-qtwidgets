@@ -117,7 +117,8 @@ namespace ome
         grid_elements(QOpenGLBuffer::IndexBuffer),
         reader(reader),
         series(series),
-        resolution(resolution)
+        resolution(resolution),
+        grid_shader(new glsl::GLLineShader2D(this))
       {
         initializeOpenGLFunctions();
 
@@ -213,6 +214,35 @@ namespace ome
         grid_elements.bind();
         grid_elements.allocate(idxs.data(),
                                sizeof(GLushort) * static_cast<size_t>(idxs.size()));
+      }
+
+      void
+      Grid2D::render(const glm::mat4& mvp,
+                     float zoom)
+      {
+        grid_shader->bind();
+
+        // Render grid
+        grid_shader->setModelViewProjection(mvp);
+        grid_shader->setZoom(zoom);
+
+        vertices.bind();
+
+        grid_shader->enableCoords();
+        grid_shader->setCoords(grid_vertices, 0, 3, 6 * sizeof(GLfloat));
+
+        grid_shader->enableColour();
+        grid_shader->setColour(grid_vertices, reinterpret_cast<const GLfloat *>(0)+3, 3, 6 * sizeof(GLfloat));
+
+        // Push each element to the vertex shader
+        grid_elements.bind();
+        glDrawElements(GL_LINES, grid_elements.size()/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+        check_gl("Grid draw elements");
+
+        grid_shader->disableColour();
+        grid_shader->disableCoords();
+        vertices.release();
+        grid_shader->release();
       }
 
     }

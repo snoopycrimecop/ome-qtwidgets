@@ -52,6 +52,7 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
+#include <ome/qtwidgets/glsl/GLFlatShader2D.h>
 
 namespace ome
 {
@@ -87,7 +88,7 @@ namespace ome
 
         /// Destructor.
         virtual
-        ~Axis2D() = 0;
+        ~Axis2D();
 
         /**
          * Create GL buffers.
@@ -95,7 +96,6 @@ namespace ome
          * @note Requires a valid GL context.  Must be called before
          * rendering.
          */
-        virtual
         void
         create();
 
@@ -104,11 +104,10 @@ namespace ome
          *
          * @param mvp the model view projection matrix.
          */
-        virtual
         void
-        render(const glm::mat4& mvp) = 0;
+        render(const glm::mat4& mvp);
 
-      protected:
+      private:
         /**
          * Set the size of the x and y axes.
          *
@@ -138,6 +137,8 @@ namespace ome
         ome::files::dimension_size_type series;
         /// The image resolution.
         ome::files::dimension_size_type resolution;
+        /// The shader program for axis rendering.
+        glsl::GLFlatShader2D *axis_shader;
       };
 
     }

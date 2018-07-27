@@ -60,7 +60,8 @@ namespace ome
         axis_elements(QOpenGLBuffer::IndexBuffer),
         reader(reader),
         series(series),
-        resolution(resolution)
+        resolution(resolution),
+        axis_shader(new glsl::GLFlatShader2D(this))
       {
         initializeOpenGLFunctions();
       }
@@ -147,6 +148,45 @@ namespace ome
         axis_elements.setUsagePattern(QOpenGLBuffer::StaticDraw);
         axis_elements.bind();
         axis_elements.allocate(axis_elements_a.data(), sizeof(GLushort) * axis_elements_a.size());
+      }
+
+      void
+      Axis2D::render(const glm::mat4& mvp)
+      {
+        axis_shader->bind();
+
+        vertices.bind();
+
+        // Render x axis
+        axis_shader->setModelViewProjection(mvp);
+        axis_shader->setColour(glm::vec4(1.0, 0.0, 0.0, 1.0));
+        axis_shader->setOffset(glm::vec2(0.0, -40.0));
+        axis_shader->enableCoords();
+        axis_shader->setCoords(xaxis_vertices, 0, 2, 0);
+
+        // Push each element to the vertex shader
+        axis_elements.bind();
+        glDrawElements(GL_TRIANGLES, axis_elements.size()/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+        check_gl("Axis X draw elements");
+
+        axis_shader->disableCoords();
+
+        // Render y axis
+        axis_shader->bind();
+        axis_shader->setModelViewProjection(mvp);
+        axis_shader->setColour(glm::vec4(0.0, 1.0, 0.0, 1.0));
+        axis_shader->setOffset(glm::vec2(-40.0, 0.0));
+        axis_shader->enableCoords();
+        axis_shader->setCoords(yaxis_vertices, 0, 2, 0);
+
+        // Push each element to the vertex shader
+        axis_elements.bind();
+        glDrawElements(GL_TRIANGLES, axis_elements.size()/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+        check_gl("Axis Y draw elements");
+
+        axis_shader->disableCoords();
+        vertices.release();
+        axis_shader->release();
       }
 
     }
