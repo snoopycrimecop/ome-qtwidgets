@@ -294,8 +294,6 @@ namespace
     void
     operator() (const T& v)
     {
-      typedef typename T::element_type::value_type value_type;
-
       T src_buffer(v);
       const PixelBufferBase::storage_order_type& orig_order(v->storage_order());
       PixelBufferBase::storage_order_type new_order(gl_order(orig_order));

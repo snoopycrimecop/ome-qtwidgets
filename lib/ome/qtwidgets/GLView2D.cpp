@@ -410,7 +410,7 @@ namespace ome
 #endif
 
     void
-    GLView2D::timerEvent (QTimerEvent *event)
+    GLView2D::timerEvent (QTimerEvent * /*event */)
     {
       makeCurrent();
 
