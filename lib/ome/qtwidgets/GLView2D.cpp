@@ -78,8 +78,9 @@ namespace ome
     GLView2D::GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
                        ome::files::dimension_size_type            series,
                        ome::files::dimension_size_type            resolution,
-                       QWidget                                   * /* parent */):
-      GLWindow(),
+                       QWidget                                   *parent):
+      QOpenGLWidget(parent),
+      QOpenGLFunctions_4_1_Core(),
       camera(),
       mouseMode(MODE_ZOOM),
       etimer(),
@@ -93,13 +94,87 @@ namespace ome
       grid(),
       reader(reader),
       series(series),
-      resolution(resolution)
+      resolution(resolution),
+      logger(0)
     {
+      setMouseTracking(true);
+
+      bool enableDebug = false;
+      if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
+        enableDebug = true;
+
+      QSurfaceFormat format;
+      format.setDepthBufferSize(24);
+      format.setStencilBufferSize(8);
+      // OpenGL 4.1 core profile with debugging.
+      format.setVersion(4, 1);
+      format.setProfile(QSurfaceFormat::CoreProfile);
+      if (enableDebug)
+        {
+          format.setOption(QSurfaceFormat::DebugContext);
+        }
+      format.setSamples(8);
+      format.setDepthBufferSize(24);
+
+      setFormat(format);
     }
 
     GLView2D::~GLView2D()
     {
       makeCurrent();
+      if (logger)
+        logger->stopLogging();
+    }
+
+    void
+    GLView2D::initializeGL()
+    {
+      initializeOpenGLFunctions();
+
+      bool enableDebug = false;
+      if (std::getenv("OME_QTWIDGETS_OPENGL_DEBUG"))
+        enableDebug = true;
+
+      if (enableDebug)
+        {
+          logger = new QOpenGLDebugLogger(this);
+          connect(logger, SIGNAL(messageLogged(QOpenGLDebugMessage)),
+                  this, SLOT(logMessage(QOpenGLDebugMessage)),
+                  Qt::DirectConnection);
+          if (logger->initialize())
+            {
+              logger->startLogging(QOpenGLDebugLogger::SynchronousLogging);
+              logger->enableMessages();
+            }
+        }
+
+      glEnable(GL_DEPTH_TEST);
+      gl::check_gl("Enable depth test");
+      glEnable(GL_CULL_FACE);
+      gl::check_gl("Enable cull face");
+      glEnable(GL_MULTISAMPLE);
+      gl::check_gl("Enable multisampling");
+      glEnable(GL_BLEND);
+      gl::check_gl("Enable blending");
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      gl::check_gl("Set blend function");
+
+      image = new gl::v33::Image2D(reader, series, resolution, this);
+      axes = new gl::v33::Axis2D(reader, series, resolution, this);
+      grid = new gl::v33::Grid2D(reader, series, resolution, this);
+
+      GLint max_combined_texture_image_units;
+      glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+      std::cout << "Texture unit count: " << max_combined_texture_image_units << std::endl;
+
+      image->create();
+      axes->create();
+      grid->create();
+
+      // Start timers
+      startTimer(0);
+      etimer.start();
+
     }
 
     QSize GLView2D::minimumSizeHint() const
@@ -178,7 +253,7 @@ namespace ome
       if (zoom != camera.zoom) {
         camera.zoom = zoom;
         emit zoomChanged(zoom);
-        renderLater();
+        update();
       }
     }
 
@@ -188,7 +263,7 @@ namespace ome
       if (xtran != camera.xTran) {
         camera.xTran = xtran;
         emit xTranslationChanged(xtran);
-        renderLater();
+        update();
       }
     }
 
@@ -198,7 +273,7 @@ namespace ome
       if (ytran != camera.yTran) {
         camera.yTran = ytran;
         emit yTranslationChanged(ytran);
-        renderLater();
+        update();
       }
     }
 
@@ -209,7 +284,7 @@ namespace ome
       if (angle != camera.zRot) {
         camera.zRot = angle;
         emit zRotationChanged(angle);
-        renderLater();
+        update();
       }
     }
 
@@ -235,7 +310,7 @@ namespace ome
         {
           cmin = glm::vec3(v);
           emit channelMinChanged(min);
-          renderLater();
+          update();
         }
       if (cmin[0] > cmax[0])
         setChannelMax(min);
@@ -249,7 +324,7 @@ namespace ome
         {
           cmax = glm::vec3(v);
           emit channelMaxChanged(max);
-          renderLater();
+          update();
         }
       if (cmax[0] < cmin[0])
         setChannelMin(max);
@@ -262,48 +337,12 @@ namespace ome
         {
           this->plane = plane;
           emit planeChanged(plane);
-          renderLater();
+          update();
         }
     }
 
     void
-    GLView2D::initialize()
-    {
-      makeCurrent();
-
-      glEnable(GL_DEPTH_TEST);
-      gl::check_gl("Enable depth test");
-      glEnable(GL_CULL_FACE);
-      gl::check_gl("Enable cull face");
-      glEnable(GL_MULTISAMPLE);
-      gl::check_gl("Enable multisampling");
-      glEnable(GL_BLEND);
-      gl::check_gl("Enable blending");
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      gl::check_gl("Set blend function");
-
-      image = new gl::v33::Image2D(reader, series, resolution, this);
-      axes = new gl::v33::Axis2D(reader, series, resolution, this);
-      grid = new gl::v33::Grid2D(reader, series, resolution, this);
-
-      GLint max_combined_texture_image_units;
-      glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
-      std::cout << "Texture unit count: " << max_combined_texture_image_units << std::endl;
-
-      image->create();
-      axes->create();
-      grid->create();
-
-      // Start timers
-      startTimer(0);
-      etimer.start();
-
-      // Size viewport
-      resize();
-    }
-
-    void
-    GLView2D::render()
+    GLView2D::paintGL()
     {
       makeCurrent();
 
@@ -320,12 +359,11 @@ namespace ome
     }
 
     void
-    GLView2D::resize()
+    GLView2D::resizeGL(int w, int h)
     {
       makeCurrent();
 
-      QSize newsize = size();
-      glViewport(0, 0, newsize.width(), newsize.height());
+      glViewport(0, 0, w, h);
     }
 
 
@@ -400,9 +438,13 @@ namespace ome
       image->setMin(cmin);
       image->setMax(cmax);
 
-      GLWindow::timerEvent(event);
+      update();
+    }
 
-      renderLater();
+    void
+    GLView2D::logMessage(QOpenGLDebugMessage message)
+    {
+      std::cerr << message.message().toStdString();
     }
 
   }

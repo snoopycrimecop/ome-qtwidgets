@@ -7,6 +7,7 @@
 #   - University of Dundee
 #   - Board of Regents of the University of Wisconsin-Madison
 #   - Glencoe Software, Inc.
+# Copyright © 2018 Quantitative Imaging Systems, LLC
 # %%
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -41,16 +42,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(QTWIDGETS_SOURCES
-    GLContainer.cpp
-    GLWindow.cpp
     GLView2D.cpp
     module.cpp
     NavigationDock2D.cpp
     TexelProperties.cpp)
 
 set(QTWIDGETS_HEADERS
-    GLContainer.h
-    GLWindow.h
     GLView2D.h
     glm.h
     module.h
