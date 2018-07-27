@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -71,8 +72,11 @@ namespace ome
            * Constructor.
            *
            * @param parent the parent of this object.
+           * @param rgb @c true to render rgb or @c false to render
+           * false colour greyscale.
            */
-          explicit GLImageShader2D(QObject *parent = 0);
+          explicit GLImageShader2D(QObject *parent = 0,
+                                   bool     rgb = false);
 
           /// Destructor.
           ~GLImageShader2D();
@@ -226,6 +230,8 @@ namespace ome
           int uniform_max;
           /// Correction multiplier for linear contrast uniform.
           int uniform_corr;
+          /// Whether RGB or greyscale rendering is in use.
+          bool rgb;
         };
 
       }

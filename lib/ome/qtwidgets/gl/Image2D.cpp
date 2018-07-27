@@ -43,8 +43,6 @@
 #include <ome/qtwidgets/gl/Image2D.h>
 #include <ome/qtwidgets/gl/Util.h>
 
-#include <iostream>
-
 using ome::files::PixelBuffer;
 using ome::files::PixelBufferBase;
 using ome::files::PixelProperties;
@@ -89,65 +87,142 @@ namespace
 
       reader.setSeries(oldseries);
 
-      switch(pixeltype)
+      switch(reader.getRGBChannelCount(0))
         {
-        case ::ome::xml::model::enums::PixelType::INT8:
-          internal_format = GL_R8;
-          external_type = GL_BYTE;
+        case 3:
+          {
+            external_format = GL_RGB;
+
+            switch(pixeltype)
+              {
+              case ::ome::xml::model::enums::PixelType::INT8:
+                internal_format = GL_RGB8;
+                external_type = GL_BYTE;
+                break;
+              case ::ome::xml::model::enums::PixelType::INT16:
+                internal_format = GL_RGB16;
+                external_type = GL_SHORT;
+                break;
+              case ::ome::xml::model::enums::PixelType::INT32:
+                internal_format = GL_RGB16;
+                external_type = GL_INT;
+                make_normal = true;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT8:
+                internal_format = GL_RGB8;
+                external_type = GL_UNSIGNED_BYTE;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT16:
+                internal_format = GL_RGB16;
+                external_type = GL_UNSIGNED_SHORT;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT32:
+                internal_format = GL_RGB16;
+                external_type = GL_UNSIGNED_INT;
+                make_normal = true;
+                break;
+              case ::ome::xml::model::enums::PixelType::FLOAT:
+                internal_format = GL_RGB32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RGB16;
+                external_type = GL_FLOAT;
+                break;
+              case ::ome::xml::model::enums::PixelType::DOUBLE:
+                internal_format = GL_RGB32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RGB16;
+                external_type = GL_DOUBLE;
+                break;
+              case ::ome::xml::model::enums::PixelType::BIT:
+                internal_format = GL_RGB8;
+                external_type = GL_UNSIGNED_BYTE;
+                make_normal = true;
+                min_filter = GL_NEAREST_MIPMAP_LINEAR;
+                mag_filter = GL_NEAREST;
+                break;
+              case ::ome::xml::model::enums::PixelType::COMPLEXFLOAT:
+                internal_format = GL_RG32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RG16;
+                external_type = GL_FLOAT;
+                external_format = GL_RG;
+                break;
+              case ::ome::xml::model::enums::PixelType::COMPLEXDOUBLE:
+                internal_format = GL_RG32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RG16;
+                external_type = GL_DOUBLE;
+                external_format = GL_RG;
+                break;
+              }
+          }
           break;
-        case ::ome::xml::model::enums::PixelType::INT16:
-          internal_format = GL_R16;
-          external_type = GL_SHORT;
-          break;
-        case ::ome::xml::model::enums::PixelType::INT32:
-          internal_format = GL_R16;
-          external_type = GL_INT;
-          make_normal = true;
-          break;
-        case ::ome::xml::model::enums::PixelType::UINT8:
-          internal_format = GL_R8;
-          external_type = GL_UNSIGNED_BYTE;
-          break;
-        case ::ome::xml::model::enums::PixelType::UINT16:
-          internal_format = GL_R16;
-          external_type = GL_UNSIGNED_SHORT;
-          break;
-        case ::ome::xml::model::enums::PixelType::UINT32:
-          internal_format = GL_R16;
-          external_type = GL_UNSIGNED_INT;
-          make_normal = true;
-          break;
-        case ::ome::xml::model::enums::PixelType::FLOAT:
-          internal_format = GL_R32F;
-          if (!GL_ARB_texture_float)
-            internal_format = GL_R16;
-          external_type = GL_FLOAT;
-          break;
-        case ::ome::xml::model::enums::PixelType::DOUBLE:
-          internal_format = GL_R32F;
-          if (!GL_ARB_texture_float)
-            internal_format = GL_R16;
-          external_type = GL_DOUBLE;
-          break;
-        case ::ome::xml::model::enums::PixelType::BIT:
-          internal_format = GL_R8;
-          external_type = GL_UNSIGNED_BYTE;
-          make_normal = true;
-          min_filter = GL_NEAREST_MIPMAP_LINEAR;
-          mag_filter = GL_NEAREST;
-          break;
-        case ::ome::xml::model::enums::PixelType::COMPLEXFLOAT:
-          internal_format = GL_RG32F;
-          if (!GL_ARB_texture_float)
-            internal_format = GL_RG16;
-          external_type = GL_FLOAT;
-          external_format = GL_RG;
-        case ::ome::xml::model::enums::PixelType::COMPLEXDOUBLE:
-          internal_format = GL_RG32F;
-          if (!GL_ARB_texture_float)
-            internal_format = GL_RG16;
-          external_type = GL_DOUBLE;
-          external_format = GL_RG;
+        default:
+          {
+            external_format = GL_RED;
+            switch(pixeltype)
+              {
+              case ::ome::xml::model::enums::PixelType::INT8:
+                internal_format = GL_R8;
+                external_type = GL_BYTE;
+                break;
+              case ::ome::xml::model::enums::PixelType::INT16:
+                internal_format = GL_R16;
+                external_type = GL_SHORT;
+                break;
+              case ::ome::xml::model::enums::PixelType::INT32:
+                internal_format = GL_R16;
+                external_type = GL_INT;
+                make_normal = true;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT8:
+                internal_format = GL_R8;
+                external_type = GL_UNSIGNED_BYTE;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT16:
+                internal_format = GL_R16;
+                external_type = GL_UNSIGNED_SHORT;
+                break;
+              case ::ome::xml::model::enums::PixelType::UINT32:
+                internal_format = GL_R16;
+                external_type = GL_UNSIGNED_INT;
+                make_normal = true;
+                break;
+              case ::ome::xml::model::enums::PixelType::FLOAT:
+                internal_format = GL_R32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_R16;
+                external_type = GL_FLOAT;
+                break;
+              case ::ome::xml::model::enums::PixelType::DOUBLE:
+                internal_format = GL_R32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_R16;
+                external_type = GL_DOUBLE;
+                break;
+              case ::ome::xml::model::enums::PixelType::BIT:
+                internal_format = GL_R8;
+                external_type = GL_UNSIGNED_BYTE;
+                make_normal = true;
+                min_filter = GL_NEAREST_MIPMAP_LINEAR;
+                mag_filter = GL_NEAREST;
+                break;
+              case ::ome::xml::model::enums::PixelType::COMPLEXFLOAT:
+                internal_format = GL_RG32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RG16;
+                external_type = GL_FLOAT;
+                external_format = GL_RG;
+                break;
+              case ::ome::xml::model::enums::PixelType::COMPLEXDOUBLE:
+                internal_format = GL_RG32F;
+                if (!GL_ARB_texture_float)
+                  internal_format = GL_RG16;
+                external_type = GL_DOUBLE;
+                external_format = GL_RG;
+                break;
+              }
+          }
           break;
         }
     }
@@ -193,23 +268,23 @@ namespace
             {
               ordering[d] = order.ordering(d);
               ascending[d] = order.ascending(d);
-
-              PixelBufferBase::size_type xo = ordering[0];
-              PixelBufferBase::size_type yo = ordering[1];
-              PixelBufferBase::size_type so = ordering[2];
-              bool xa = ascending[0];
-              bool ya = ascending[1];
-              bool sa = ascending[2];
-
-              ordering[0] = so;
-              ordering[1] = xo;
-              ordering[2] = yo;
-              ascending[0] = sa;
-              ascending[1] = xa;
-              ascending[2] = ya;
-
-              ret = PixelBufferBase::storage_order_type(ordering, ascending);
             }
+
+          PixelBufferBase::size_type xo = ordering[0];
+          PixelBufferBase::size_type yo = ordering[1];
+          PixelBufferBase::size_type so = ordering[2];
+          bool xa = ascending[0];
+          bool ya = ascending[1];
+          bool sa = ascending[2];
+
+          ordering[0] = so;
+          ordering[1] = xo;
+          ordering[2] = yo;
+          ascending[0] = sa;
+          ascending[1] = xa;
+          ascending[2] = ya;
+
+          ret = PixelBufferBase::storage_order_type(ordering, ascending);
         }
       return ret;
     }
@@ -249,8 +324,7 @@ namespace
                       tprop.h,  // height
                       tprop.external_format,  // format
                       tprop.external_type, // type
-                      //                      testdata);
-                      v->data());
+                      src_buffer->data()); // data
       check_gl("Texture set pixels in subregion");
       glGenerateMipmap(GL_TEXTURE_2D);
       check_gl("Generate mipmaps");

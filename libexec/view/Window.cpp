@@ -248,7 +248,7 @@ namespace view
       {
         std::shared_ptr<ome::files::FormatReader> reader(std::make_shared<ome::files::in::OMETIFFReader>());
         reader->setId(file.toStdString());
-        GLView2D *newGlView = new GLView2D(reader, 0, 1, this);
+        GLView2D *newGlView = new GLView2D(reader, 0, 0, this);
         QWidget *glContainer = new GLContainer(this, newGlView);
         newGlView->setObjectName("glcontainer");
         // We need a minimum size or else the size defaults to zero.

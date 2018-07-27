@@ -56,7 +56,7 @@ namespace ome
                          ome::files::dimension_size_type            resolution,
                          QObject                                   *parent):
           gl::Image2D(reader, series, resolution, parent),
-          image_shader(new glsl::v330::GLImageShader2D(this))
+          image_shader(new glsl::v330::GLImageShader2D(this, reader->getRGBChannelCount(0) == 3))
         {
         }
 

@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -54,7 +55,8 @@ namespace ome
       namespace v330
       {
 
-        GLImageShader2D::GLImageShader2D(QObject *parent):
+        GLImageShader2D::GLImageShader2D(QObject *parent,
+                                         bool     rgb):
           QOpenGLShaderProgram(parent),
           vshader(),
           fshader(),
@@ -64,7 +66,8 @@ namespace ome
           uniform_texture(),
           uniform_lut(),
           uniform_min(),
-          uniform_max()
+          uniform_max(),
+          rgb(rgb)
         {
           initializeOpenGLFunctions();
 
@@ -93,28 +96,52 @@ namespace ome
             }
 
           fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
-          fshader->compileSourceCode
-            ("#version 330 core\n"
-             "\n"
-             "uniform sampler2D tex;\n"
-             "uniform sampler1DArray lut;\n"
-             "uniform vec3 texmin;\n"
-             "uniform vec3 texmax;\n"
-             "uniform vec3 correction;\n"
-             "\n"
-             "in VertexData\n"
-             "{\n"
-             "  vec2 f_texcoord;\n"
-             "} inData;\n"
-             "\n"
-             "out vec4 outputColour;\n"
-             "\n"
-             "void main(void) {\n"
-             "  vec2 flipped_texcoord = vec2(inData.f_texcoord.x, 1.0 - inData.f_texcoord.y);\n"
-             "  vec4 texval = texture(tex, flipped_texcoord);\n"
-             "\n"
-             "  outputColour = texture(lut, vec2(((((texval[0] * correction[0]) - texmin[0]) / (texmax[0] - texmin[0]))), 0.0));\n"
-             "}\n");
+          if (!rgb)
+            {
+              fshader->compileSourceCode
+                ("#version 330 core\n"
+                 "\n"
+                 "uniform sampler2D tex;\n"
+                 "uniform sampler1DArray lut;\n"
+                 "uniform vec3 texmin;\n"
+                 "uniform vec3 texmax;\n"
+                 "uniform vec3 correction;\n"
+                 "\n"
+                 "in VertexData\n"
+                 "{\n"
+                 "  vec2 f_texcoord;\n"
+                 "} inData;\n"
+                 "\n"
+                 "out vec4 outputColour;\n"
+                 "\n"
+                 "void main(void) {\n"
+                 "  vec2 flipped_texcoord = vec2(inData.f_texcoord.x, 1.0 - inData.f_texcoord.y);\n"
+                 "  vec4 texval = texture(tex, flipped_texcoord);\n"
+                 "\n"
+                 "  outputColour = texture(lut, vec2(((((texval[0] * correction[0]) - texmin[0]) / (texmax[0] - texmin[0]))), 0.0));\n"
+                 "}\n");
+            }
+          else
+            {
+              fshader->compileSourceCode
+                ("#version 330 core\n"
+                 "\n"
+                 "uniform sampler2D tex;\n"
+                 "\n"
+                 "in VertexData\n"
+                 "{\n"
+                 "  vec2 f_texcoord;\n"
+                 "} inData;\n"
+                 "\n"
+                 "out vec4 outputColour;\n"
+                 "\n"
+                 "void main(void) {\n"
+                 "  vec2 flipped_texcoord = vec2(inData.f_texcoord.x, 1.0 - inData.f_texcoord.y);\n"
+                 "  vec4 texval = texture(tex, flipped_texcoord);\n"
+                 "\n"
+                 "  outputColour = vec4(texval[0], texval[1], texval[2], 1.0);\n"
+                 "}\n");
+            }
 
           if (!fshader->isCompiled())
             {
@@ -146,21 +173,24 @@ namespace ome
           if (uniform_texture == -1)
             std::cerr << "V330GLImageShader2D: Failed to bind texture uniform " << std::endl;
 
-          uniform_lut = uniformLocation("lut");
-          if (uniform_lut == -1)
-            std::cerr << "V330GLImageShader2D: Failed to bind lut uniform " << std::endl;
+          if (!rgb)
+            {
+              uniform_lut = uniformLocation("lut");
+              if (uniform_lut == -1)
+                std::cerr << "V330GLImageShader2D: Failed to bind lut uniform " << std::endl;
 
-          uniform_min = uniformLocation("texmin");
-          if (uniform_min == -1)
-            std::cerr << "V330GLImageShader2D: Failed to bind min uniform " << std::endl;
+              uniform_min = uniformLocation("texmin");
+              if (uniform_min == -1)
+                std::cerr << "V330GLImageShader2D: Failed to bind min uniform " << std::endl;
 
-          uniform_max = uniformLocation("texmax");
-          if (uniform_max == -1)
-            std::cerr << "V330GLImageShader2D: Failed to bind max uniform " << std::endl;
+              uniform_max = uniformLocation("texmax");
+              if (uniform_max == -1)
+                std::cerr << "V330GLImageShader2D: Failed to bind max uniform " << std::endl;
 
-          uniform_corr = uniformLocation("correction");
-          if (uniform_corr == -1)
-            std::cerr << "V330GLImageShader2D: Failed to bind correction uniform " << std::endl;
+              uniform_corr = uniformLocation("correction");
+              if (uniform_corr == -1)
+                std::cerr << "V330GLImageShader2D: Failed to bind correction uniform " << std::endl;
+            }
         }
 
         GLImageShader2D::~GLImageShader2D()
@@ -234,29 +264,41 @@ namespace ome
         void
         GLImageShader2D::setMin(const glm::vec3& min)
         {
-          glUniform3fv(uniform_min, 1, glm::value_ptr(min));
-          check_gl("Set min range");
+          if (!rgb)
+            {
+              glUniform3fv(uniform_min, 1, glm::value_ptr(min));
+              check_gl("Set min range");
+            }
         }
 
         void
         GLImageShader2D::setMax(const glm::vec3& max)
         {
-          glUniform3fv(uniform_max, 1, glm::value_ptr(max));
-          check_gl("Set max range");
+          if (!rgb)
+            {
+              glUniform3fv(uniform_max, 1, glm::value_ptr(max));
+              check_gl("Set max range");
+            }
         }
 
         void
         GLImageShader2D::setCorrection(const glm::vec3& corr)
         {
-          glUniform3fv(uniform_corr, 1, glm::value_ptr(corr));
-          check_gl("Set correction multiplier");
+          if (!rgb)
+            {
+              glUniform3fv(uniform_corr, 1, glm::value_ptr(corr));
+              check_gl("Set correction multiplier");
+            }
         }
 
         void
         GLImageShader2D::setLUT(int texunit)
         {
-          glUniform1i(uniform_lut, texunit);
-          check_gl("Set LUT texture");
+          if (!rgb)
+            {
+              glUniform1i(uniform_lut, texunit);
+              check_gl("Set LUT texture");
+            }
         }
 
         void
