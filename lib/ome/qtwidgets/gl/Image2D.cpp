@@ -261,10 +261,10 @@ namespace
       PixelBufferBase::storage_order_type ret(order);
       // This makes the assumption that the order is SXY or XYS, and
       // switches XYS to SXY if needed.
-      if (order.ordering(0) != ome::files::DIM_SUBCHANNEL)
+      if (order.ordering(0) != ome::files::DIM_SAMPLE)
         {
           PixelBufferBase::size_type ordering[PixelBufferBase::dimensions];
-          bool ascending[PixelBufferBase::dimensions] = {true, true, true, true, true, true, true, true, true};
+          bool ascending[PixelBufferBase::dimensions] = {true, true, true, true};
           for (boost::detail::multi_array::size_type d = 0; d < PixelBufferBase::dimensions; ++d)
             {
               ordering[d] = order.ordering(d);
@@ -303,7 +303,7 @@ namespace
           // Reorder as interleaved.
           const PixelBufferBase::size_type *shape = v->shape();
 
-          T gl_buf(new typename T::element_type(boost::extents[shape[0]][shape[1]][shape[2]][shape[3]][shape[4]][shape[5]][shape[6]][shape[7]][shape[8]],
+          T gl_buf(new typename T::element_type(boost::extents[shape[0]][shape[1]][shape[2]][shape[3]],
                                                 v->pixelType(),
                                                 v->endianType(),
                                                 new_order));
