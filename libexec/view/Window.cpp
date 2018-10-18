@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -48,7 +49,6 @@
 
 #include <ome/common/module.h>
 
-#include <ome/qtwidgets/GLContainer.h>
 #include <ome/qtwidgets/module.h>
 
 #include <QtWidgets/QHBoxLayout>
@@ -247,12 +247,11 @@ namespace view
       {
         std::shared_ptr<ome::files::FormatReader> reader(std::make_shared<ome::files::in::OMETIFFReader>());
         reader->setId(file.toStdString());
-        GLView2D *newGlView = new GLView2D(reader, 0, this);
-        QWidget *glContainer = new GLContainer(this, newGlView);
-        newGlView->setObjectName("glcontainer");
+        GLView2D *newGlView = new GLView2D(reader, 0, 0, this);
+        newGlView->setObjectName("glview");
         // We need a minimum size or else the size defaults to zero.
-        glContainer->setMinimumSize(512, 512);
-        tabs->addTab(glContainer, info.fileName());
+        // glContainer->setMinimumSize(512, 512);
+        tabs->addTab(newGlView, info.fileName());
         newGlView->setChannelMin(6 *16);
         newGlView->setChannelMax(100 * 16);
         newGlView->setPlane(0);
@@ -316,9 +315,7 @@ namespace view
         QWidget *w = tabs->currentWidget();
         if (w)
           {
-            GLContainer *container = static_cast<GLContainer *>(w);
-            if (container)
-              current = static_cast<GLView2D *>(container->getWindow());
+            current = static_cast<GLView2D *>(w);
           }
       }
     viewFocusChanged(current);

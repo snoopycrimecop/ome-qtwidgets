@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -44,12 +45,15 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
-#include <ome/qtwidgets/GLWindow.h>
 #include <ome/qtwidgets/gl/Image2D.h>
 #include <ome/qtwidgets/gl/Grid2D.h>
 #include <ome/qtwidgets/gl/Axis2D.h>
 
 #include <QElapsedTimer>
+
+#include <QtWidgets/QOpenGLWidget>
+#include <QtGui/QOpenGLFunctions_4_1_Core>
+#include <QtGui/QOpenGLDebugMessage>
 
 /**
  * Open Microscopy Environment C++.
@@ -63,7 +67,8 @@ namespace ome
     /**
      * 2D GL view of an image with axes and gridlines.
      */
-    class GLView2D : public GLWindow
+    class GLView2D : public QOpenGLWidget,
+                     protected QOpenGLFunctions_4_1_Core
     {
       Q_OBJECT
 
@@ -83,11 +88,13 @@ namespace ome
        *
        * @param reader the image reader.
        * @param series the image series.
+       * @param resolution the image resolution.
        * @param parent the parent of this object.
        */
       GLView2D(std::shared_ptr<ome::files::FormatReader>  reader,
-               ome::files::dimension_size_type                    series,
-               QWidget                                                *parent = 0);
+               ome::files::dimension_size_type            series,
+               ome::files::dimension_size_type            resolution,
+               QWidget                                   *parent = 0);
 
       /// Destructor.
       ~GLView2D();
@@ -171,6 +178,17 @@ namespace ome
       void
       setMouseMode(MouseMode mode);
 
+      /**
+       * Log a GL debug message.
+       *
+       * This currently logs to stderr due to the high log volume when
+       * debugging is enabled.
+       *
+       * @param message the message to log.
+       */
+      void
+      logMessage(QOpenGLDebugMessage message);
+
     public:
       /**
        * Get reader.
@@ -187,6 +205,14 @@ namespace ome
        */
       ome::files::dimension_size_type
       getSeries();
+
+      /**
+       * Get resolution.
+       *
+       * @returns the resolution.
+       */
+      ome::files::dimension_size_type
+      getResolution();
 
       /**
        * Get zoom factor.
@@ -312,17 +338,22 @@ namespace ome
     protected:
       /// Set up GL context and subsidiary objects.
       void
-      initialize();
+      initializeGL();
 
-      using GLWindow::render;
+      /**
+       * Render using OpenGL.
+       */
+      virtual void
+      paintGL();
 
-      /// Render the scene with the current view settings.
-      void
-      render();
-
-      /// Resize the view.
-      void
-      resize();
+      /**
+       * Handle resizing of the window.
+       *
+       * @param w width
+       * @param h height
+       */
+      virtual void
+      resizeGL(int w, int h);
 
       /**
        * Handle mouse button press events.
@@ -461,6 +492,10 @@ namespace ome
       std::shared_ptr<ome::files::FormatReader> reader;
       /// The image series.
       ome::files::dimension_size_type series;
+      /// The image resolution.
+      ome::files::dimension_size_type resolution;
+      /// OpenGL debug logger (if logging enabled).
+      QOpenGLDebugLogger *logger;
     };
 
   }

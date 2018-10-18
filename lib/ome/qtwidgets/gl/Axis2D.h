@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,6 +52,7 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
+#include <ome/qtwidgets/glsl/GLFlatShader2D.h>
 
 namespace ome
 {
@@ -76,15 +78,17 @@ namespace ome
          *
          * @param reader the image reader.
          * @param series the image series.
+         * @param resolution the image resolution.
          * @param parent the parent of this object.
          */
         explicit Axis2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                        ome::files::dimension_size_type                    series,
-                        QObject                                                *parent = 0);
+                        ome::files::dimension_size_type            series,
+                        ome::files::dimension_size_type            resolution,
+                        QObject                                   *parent = 0);
 
         /// Destructor.
         virtual
-        ~Axis2D() = 0;
+        ~Axis2D();
 
         /**
          * Create GL buffers.
@@ -92,7 +96,6 @@ namespace ome
          * @note Requires a valid GL context.  Must be called before
          * rendering.
          */
-        virtual
         void
         create();
 
@@ -101,11 +104,10 @@ namespace ome
          *
          * @param mvp the model view projection matrix.
          */
-        virtual
         void
-        render(const glm::mat4& mvp) = 0;
+        render(const glm::mat4& mvp);
 
-      protected:
+      private:
         /**
          * Set the size of the x and y axes.
          *
@@ -133,6 +135,10 @@ namespace ome
         std::shared_ptr<ome::files::FormatReader> reader;
         /// The image series.
         ome::files::dimension_size_type series;
+        /// The image resolution.
+        ome::files::dimension_size_type resolution;
+        /// The shader program for axis rendering.
+        glsl::GLFlatShader2D *axis_shader;
       };
 
     }

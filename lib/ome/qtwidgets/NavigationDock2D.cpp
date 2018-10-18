@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -133,21 +134,24 @@ namespace ome
 
     void
     NavigationDock2D::setReader(std::shared_ptr<ome::files::FormatReader> reader,
-                                ome::files::dimension_size_type                   series,
-                                ome::files::dimension_size_type                   plane)
+                                ome::files::dimension_size_type           series,
+                                ome::files::dimension_size_type           resolution,
+                                ome::files::dimension_size_type           plane)
     {
       this->reader = reader;
       this->series = series;
+      this->resolution = resolution;
 
       if (reader)
         {
           ome::files::dimension_size_type oldseries = reader->getSeries();
           reader->setSeries(series);
+          reader->setResolution(resolution);
           dimension_size_type imageCount = reader->getImageCount();
           // Full dimension sizes.
           dimension_size_type z = reader->getSizeZ();
           dimension_size_type t = reader->getSizeT();
-          dimension_size_type c = reader->getSizeC();
+          dimension_size_type c = reader->getEffectiveSizeC();
           // Modulo dimension sizes.
           dimension_size_type mz = reader->getModuloZ().size();
           dimension_size_type mt = reader->getModuloT().size();
@@ -219,6 +223,7 @@ namespace ome
             {
               ome::files::dimension_size_type oldseries = reader->getSeries();
               reader->setSeries(series);
+              reader->setResolution(resolution);
               // Modulo dimension sizes.
               dimension_size_type mz = reader->getModuloZ().size();
               dimension_size_type mt = reader->getModuloT().size();
@@ -272,6 +277,7 @@ namespace ome
         {
           ome::files::dimension_size_type oldseries = reader->getSeries();
           reader->setSeries(series);
+          reader->setResolution(resolution);
           // Modulo dimension sizes.
           dimension_size_type mz = reader->getModuloZ().size();
           dimension_size_type mt = reader->getModuloT().size();
@@ -304,6 +310,7 @@ namespace ome
         {
           ome::files::dimension_size_type oldseries = reader->getSeries();
           reader->setSeries(series);
+          reader->setResolution(resolution);
           // Modulo dimension sizes.
           dimension_size_type mz = reader->getModuloZ().size();
           dimension_size_type mt = reader->getModuloT().size();

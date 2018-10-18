@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -51,6 +52,7 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
+#include <ome/qtwidgets/glsl/GLImageShader2D.h>
 
 namespace ome
 {
@@ -80,16 +82,18 @@ namespace ome
          *
          * @param reader the image reader.
          * @param series the image series.
+         * @param resolution the image resolution.
          * @param parent the parent of this object.
          */
         explicit
         Image2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                ome::files::dimension_size_type                    series,
-                QObject                                                *parent = 0);
+                ome::files::dimension_size_type            series,
+                ome::files::dimension_size_type            resolution,
+                QObject                                   *parent = 0);
 
         /// Destructor.
         virtual
-        ~Image2D() = 0;
+        ~Image2D();
 
         /**
          * Create GL buffers.
@@ -97,18 +101,16 @@ namespace ome
          * @note Requires a valid GL context.  Must be called before
          * rendering.
          */
-        virtual
         void
         create();
 
-      protected:
+      private:
         /**
          * Set the size of the x and y dimensions.
          *
          * @param xlim the x axis limits (range).
          * @param ylim the y axis limits (range).
          */
-        virtual
         void
         setSize(const glm::vec2& xlim,
                 const glm::vec2& ylim);
@@ -176,9 +178,8 @@ namespace ome
          *
          * @param mvp the model view projection matrix.
          */
-        virtual
         void
-        render(const glm::mat4& mvp) = 0;
+        render(const glm::mat4& mvp);
 
         /**
          * Get texture ID.
@@ -225,8 +226,12 @@ namespace ome
         std::shared_ptr<ome::files::FormatReader> reader;
         /// The image series.
         ome::files::dimension_size_type series;
+        /// The image resolution.
+        ome::files::dimension_size_type resolution;
         /// The current image plane.
         ome::files::dimension_size_type plane;
+        /// The shader program for image rendering.
+        glsl::GLImageShader2D *image_shader;
       };
 
     }

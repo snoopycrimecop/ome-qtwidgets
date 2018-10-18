@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -44,7 +45,6 @@
 #include <ome/files/FormatReader.h>
 
 #include <ome/qtwidgets/glm.h>
-#include <ome/qtwidgets/GLWindow.h>
 #include <ome/qtwidgets/gl/Image2D.h>
 #include <ome/qtwidgets/gl/Grid2D.h>
 #include <ome/qtwidgets/gl/Axis2D.h>
@@ -88,15 +88,17 @@ namespace ome
        *
        * @param reader the image reader.
        * @param series the image series.
+       * @param resolution the image resolution.
        * @param plane the image plane.
        */
       void
       setReader(std::shared_ptr<ome::files::FormatReader> reader,
-                ome::files::dimension_size_type                   series = 0,
-                ome::files::dimension_size_type                   plane = 0);
+                ome::files::dimension_size_type           series = 0,
+                ome::files::dimension_size_type           resolution = 0,
+                ome::files::dimension_size_type           plane = 0);
 
       /**
-       * Get the current plane for the series.
+       * Get the current plane for the series and resolution.
        *
        * @returns the current plane.
        */
@@ -105,7 +107,7 @@ namespace ome
 
     public slots:
       /**
-       * Set the current plane for the series.
+       * Set the current plane for the series and resolution.
        *
        * @param plane the image plane.
        */
@@ -159,6 +161,8 @@ namespace ome
       std::shared_ptr<ome::files::FormatReader> reader;
       /// The image series.
       ome::files::dimension_size_type series;
+      /// The image resolution.
+      ome::files::dimension_size_type resolution;
       /// The image plane.
       ome::files::dimension_size_type currentPlane;
 

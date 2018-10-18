@@ -8,6 +8,7 @@
  *   - University of Dundee
  *   - Board of Regents of the University of Wisconsin-Madison
  *   - Glencoe Software, Inc.
+ * Copyright © 2018 Quantitative Imaging Systems, LLC
  * %%
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -107,19 +108,23 @@ namespace ome
     {
 
       Grid2D::Grid2D(std::shared_ptr<ome::files::FormatReader>  reader,
-                     ome::files::dimension_size_type                    series,
-                     QObject                                                *parent):
+                     ome::files::dimension_size_type            series,
+                     ome::files::dimension_size_type            resolution,
+                     QObject                                   *parent):
         QObject(parent),
         vertices(),
         grid_vertices(QOpenGLBuffer::VertexBuffer),
         grid_elements(QOpenGLBuffer::IndexBuffer),
         reader(reader),
-        series(series)
+        series(series),
+        resolution(resolution),
+        grid_shader(new glsl::GLLineShader2D(this))
       {
         initializeOpenGLFunctions();
 
         ome::files::dimension_size_type oldseries = reader->getSeries();
         reader->setSeries(series);
+        reader->setResolution(resolution);
         setSize(glm::vec2(-(static_cast<float>(reader->getSizeX())), reader->getSizeX()), glm::vec2(-(static_cast<float>(reader->getSizeY())), reader->getSizeY()));
         reader->setSeries(oldseries);
       }
@@ -209,6 +214,35 @@ namespace ome
         grid_elements.bind();
         grid_elements.allocate(idxs.data(),
                                sizeof(GLushort) * static_cast<size_t>(idxs.size()));
+      }
+
+      void
+      Grid2D::render(const glm::mat4& mvp,
+                     float zoom)
+      {
+        grid_shader->bind();
+
+        // Render grid
+        grid_shader->setModelViewProjection(mvp);
+        grid_shader->setZoom(zoom);
+
+        vertices.bind();
+
+        grid_shader->enableCoords();
+        grid_shader->setCoords(grid_vertices, 0, 3, 6 * sizeof(GLfloat));
+
+        grid_shader->enableColour();
+        grid_shader->setColour(grid_vertices, reinterpret_cast<const GLfloat *>(0)+3, 3, 6 * sizeof(GLfloat));
+
+        // Push each element to the vertex shader
+        grid_elements.bind();
+        glDrawElements(GL_LINES, grid_elements.size()/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+        check_gl("Grid draw elements");
+
+        grid_shader->disableColour();
+        grid_shader->disableCoords();
+        vertices.release();
+        grid_shader->release();
       }
 
     }
